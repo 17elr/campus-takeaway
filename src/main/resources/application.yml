@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:mysql://localhost:3306/campus_takeaway?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}
+    username: ${DB_USERNAME:root}
+    password: ${DB_PASSWORD:root}
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+  thymeleaf:
+    cache: false
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+server:
+  port: ${PORT:8080}
