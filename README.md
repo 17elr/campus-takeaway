@@ -1,5 +1,28 @@
 # 基于 Java Web 的校园外卖订餐与配送系统
 
+## 项目证据与个人贡献
+
+[负责模块与关键技术决策](docs/PORTFOLIO.md) · [当前架构说明](docs/architecture-overview.md) · [持续集成](.github/workflows/ci.yml)
+
+```mermaid
+flowchart LR
+    U[学生 / 商家 / 骑手 / 管理员] --> V[Thymeleaf 页面 / 原生 JS]
+    V --> A[Spring Security / Session / CSRF]
+    A --> C[Spring MVC 控制器]
+    C --> S[下单 / 订单状态 / 账号 / 地址服务]
+    S --> M[MyBatis / 条件更新 / 事务]
+    M --> DB[(MySQL / 订单与地址快照 / 事件记录)]
+```
+
+### 演示截图
+
+![学生订餐首页和示例店铺](docs/images/student.png)
+
+![学生菜单分类与餐品加入购物车](docs/images/menu.png)
+
+[截图来源与历史版本说明](docs/images/SOURCES.md)。当前支付为模拟流程。
+
+
 毕业设计题目：**基于 Java Web 的校园外卖订餐与配送系统设计与实现**。
 
 本项目交付一个可在浏览器运行的校园外卖系统，以及符合学校要求的毕业设计报告。学生在手机端订餐，商家处理订单，骑手配送，管理员维护平台。采用单体 Java Web 应用和响应式页面，手机、电脑均可使用。
