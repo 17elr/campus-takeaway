@@ -1,103 +1,167 @@
-# 校园好味道 · 校园外卖系统
+<p align="center">
+  <img src="docs/assets/readme-banner.svg" alt="校园好味道 Campus Takeaway：连接学生、商家、骑手与管理员的校园订餐配送系统" width="100%">
+</p>
 
-Java 17 + Spring Boot 3.5.16 + MyBatis 3.0.5 + MySQL 8 + Redis + Spring Session + Vue 3 + Element Plus。
+<h1 align="center">校园好味道 · Campus Takeaway</h1>
 
-2026-10-24 将原 Java Web / Thymeleaf 版升级为 Vue 前后端分离。保留学生、商家、骑手、管理员的订单闭环。支付为模拟，不会产生真实扣款。原版提交与图片来源保留在 Git 历史中。
+<p align="center">
+  从选餐到送达的完整校园外卖系统。<br>
+  Vue 3 前后端分离 · Redis 共享登录与菜单缓存 · 数据库事务保障订单
+</p>
 
-![学生菜单](docs/screenshots/student-menu.png)
+<p align="center">
+  <a href="https://github.com/17elr/campus-takeaway/actions/workflows/ci.yml"><img src="https://github.com/17elr/campus-takeaway/actions/workflows/ci.yml/badge.svg?branch=master" alt="主分支构建状态"></a>
+  <a href="pom.xml"><img src="https://img.shields.io/badge/Java-17-9B3D1B?style=flat-square" alt="Java 17"></a>
+  <a href="pom.xml"><img src="https://img.shields.io/badge/Spring_Boot-3.5-347754?style=flat-square" alt="Spring Boot 3.5"></a>
+  <a href="web/package.json"><img src="https://img.shields.io/badge/Vue-3-347754?style=flat-square" alt="Vue 3"></a>
+  <a href="compose.yaml"><img src="https://img.shields.io/badge/Redis-7.4-9B3D1B?style=flat-square" alt="Compose 使用 Redis 7.4"></a>
+  <a href="docs/verification.md"><img src="https://img.shields.io/badge/verified-36_Java_%2B_4_web-71645B?style=flat-square" alt="验证记录：36 项 Java 与 4 项前端测试"></a>
+</p>
 
-## 快速启动
+<p align="center">
+  <a href="#preview">界面预览</a> ·
+  <a href="#quick-start">快速开始</a> ·
+  <a href="#quality">测试验证</a> ·
+  <a href="docs/README.md">文档中心</a>
+</p>
 
-需要 Docker Compose。复制 `.env.example` 为 `.env`，替换两个密码。首次演示使用 `DEMO_DATA=true`；空库会创建示例账号和菜单，已有用户的数据库不会被自动重新灌入示例数据。
+## 项目简介
+
+校园好味道围绕一份订单，串联**学生选餐、商家制作、骑手配送、学生确认收货**，由管理员维护用户与店铺。支持一个 JAR 同源交付，也可通过 Vue 开发服务器与后端分别运行。
+
+项目在原 Java Web 版本上完成 Vue / Redis 升级，重点实现数据库购物车、跨实例幂等结算、共享会话和订单状态一致性。**支付为模拟，不会产生真实扣款。**
+
+<a id="preview"></a>
+
+## 界面预览
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <strong>学生 · 选餐下单</strong><br><sub>店铺、购物车与订单</sub><br><br>
+      <a href="docs/screenshots/student-menu.png"><img src="docs/screenshots/student-menu.png" alt="学生端：店铺菜单与数据库购物车" width="440"></a>
+    </td>
+    <td width="50%" align="center">
+      <strong>商家 · 接单制作</strong><br><sub>菜品、制作与店铺</sub><br><br>
+      <a href="docs/screenshots/merchant-orders.png"><img src="docs/screenshots/merchant-orders.png" alt="商家端：订单工作台与接单制作操作" width="440"></a>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <strong>骑手 · 配送任务</strong><br><sub>待配送与本人任务</sub><br><br>
+      <a href="docs/screenshots/rider-available.png"><img src="docs/screenshots/rider-available.png" alt="骑手端：待配送大厅与领取配送操作" width="440"></a>
+    </td>
+    <td width="50%" align="center">
+      <strong>管理员 · 用户管理</strong><br><sub>账号、店铺与订单</sub><br><br>
+      <a href="docs/screenshots/admin-users.png"><img src="docs/screenshots/admin-users.png" alt="管理员端：用户列表与账号管理" width="440"></a>
+    </td>
+  </tr>
+</table>
+
+截图来自真实浏览器与隔离演示数据，点击可查看原图。[浏览全部 15 张截图、移动端与订单时间线 →](docs/SHOWCASE.md)
+
+<a id="features"></a>
+
+## 功能与设计
+
+| 面向谁 | 已实现的业务 |
+| --- | --- |
+| 学生 | 注册登录、店铺菜单、单店购物车、校内地址与默认地址、模拟支付、取消、确认收货、再来一单 |
+| 商家 | 自有店铺与营业状态、菜品分类/价格/上下架、接单、制作完成 |
+| 骑手 | 待配送大厅、条件抢单、本人配送、标记送达 |
+| 管理员 | 创建商家/骑手、用户启停、店铺启停、菜品与订单概览 |
+| 共用 | 资料与改密、角色导航、订单详情、事件时间线、字段校验与错误反馈 |
+
+| 工程重点 | 实现方式 | 代码入口 |
+| --- | --- | --- |
+| 持久化购物车与幂等结算 | 用户行锁串行化修改与结算；版本/请求凭证/唯一键保护重放；订单、快照、事件与清空购物车同事务 | [CartService](src/main/java/cn/campus/takeaway/cart/CartService.java) · [OrderService](src/main/java/cn/campus/takeaway/service/OrderService.java) |
+| 安全共享登录 | Redis Session、会话编号轮换、CSRF、可信当前用户、认证版本与 BCrypt；改密/停用使旧会话失效 | [auth](src/main/java/cn/campus/takeaway/auth/) |
+| 公共菜单缓存 | 60–75 秒 TTL、短时负缓存、提交后失效与故障回源；成交价重新读 MySQL | [MenuCache](src/main/java/cn/campus/takeaway/cache/MenuCache.java) |
+| 真实分页与批量明细 | SQL 筛选后分页，本页订单明细一次 IN 查询加载 | [AppMapper](src/main/java/cn/campus/takeaway/mapper/AppMapper.java) |
+| 订单超时与并发配送 | 15 分钟未支付条件取消、30 秒扫描与启动补偿；条件 UPDATE 保证抢单单赢家 | [OrderExpiry](src/main/java/cn/campus/takeaway/service/OrderExpiry.java) |
+
+<a id="quick-start"></a>
+
+## 快速开始
+
+准备 Docker Compose，克隆仓库后启动：
 
 ```sh
+git clone https://github.com/17elr/campus-takeaway.git
+cd campus-takeaway
 cp .env.example .env
+# 编辑 .env，替换 DB_PASSWORD 和 MYSQL_ROOT_PASSWORD，再启动
 docker compose up --build -d
 ```
 
-打开 http://127.0.0.1:8080 。MySQL/Redis 宿主端口分别为 **13317 / 16377**，只绑定 127.0.0.1。容器使用 mysql:3306 / redis:6379。命名卷保存数据；停止使用 `docker compose stop`，不要删除数据卷。
+打开 [http://127.0.0.1:8080](http://127.0.0.1:8080)。`.env.example` 为首次体验启用示例数据；仅在用户表为空时创建以下账号：
 
-| 角色 | 示例用户名 | 示例密码 | 入口 |
-| --- | --- | --- | --- |
-| 学生 | student | student123 | 选餐、购物车、地址、模拟支付、订单 |
-| 商家 | merchant | merchant123 | 接单、制作、菜品、店铺 |
-| 骑手 | rider | rider123 | 待配送大厅、本人配送 |
-| 管理员 | admin | admin123 | 用户、店铺、菜品、订单概览 |
+| 角色 | 用户名 | 示例密码 |
+| --- | --- | --- |
+| 学生 | `student` | `student123` |
+| 商家 | `merchant` | `merchant123` |
+| 骑手 | `rider` | `rider123` |
+| 管理员 | `admin` | `admin123` |
 
-这些账号仅在显式启用示例数据且用户表为空时建立；部署到公网前必须关闭示例数据并更改所有示例密码，HTTPS 设置 `COOKIE_SECURE=true`。
+数据库使用持久化命名卷，停止服务使用 `docker compose stop`。示例账号仅供本地演示；公网部署前关闭示例数据、更改示例密码，HTTPS 启用 `COOKIE_SECURE=true`。
 
-## 本地开发
+[本地开发、环境变量、端口与 JAR 构建 →](docs/QUICKSTART.md) · [旧数据升级与回退 →](docs/MIGRATION.md)
 
-需要 Java **17**、Maven 3.9、Node **24**、MySQL 8 和 Redis。可以只用 Compose 启动依赖：
+<a id="architecture"></a>
 
-```sh
-docker compose up -d mysql redis
-# 在当前终端设置 DB_USERNAME=takeaway、DB_PASSWORD 为 .env 中值
-mvn spring-boot:run
-# 另一个终端
-cd web
-npm ci
-npm run dev
+## 系统架构
+
+```mermaid
+flowchart LR
+    WEB[Vue 3 / Element Plus] --> AUTH[会话认证 / CSRF / 角色]
+    AUTH --> API[Spring MVC JSON API]
+    AUTH --> SESSION[(Redis 共享 Session)]
+    AUTH --> DB[(MySQL 8)]
+    API --> BUSINESS[业务服务 / 归属检查]
+    BUSINESS --> DB
+    API --> CACHE[公共菜单缓存]
+    CACHE --> REDIS[(Redis / TTL)]
+    CACHE --> DB
+    JOB[超时扫描 / 启动补偿] --> DB
 ```
 
-Vue 开发地址 http://127.0.0.1:18081 ，`/api` 和 `/images` 代理到 8080。开发与生产均同源携带 Cookie，无任意凭证 CORS。修改 Vite 代理端口时同步修改后端端口。
+| 层次 | 技术 |
+| --- | --- |
+| 前端 | Vue 3、Vue Router、Element Plus、JavaScript、原生 Fetch、Vite |
+| 后端 | Java 17、Spring Boot 3.5.16、Spring MVC、MyBatis 3.0.5 |
+| 数据与会话 | MySQL 8、Redis、Spring Session、Flyway、BCrypt |
+| 构建与验证 | Maven、Node 24、Docker Compose、GitHub Actions、JUnit、真实浏览器 |
 
-构建一个包含 Vue 的 JAR：
+[完整订单状态图与事务边界 →](docs/architecture.md)
 
-```sh
-npm ci --prefix web
-npm run build --prefix web
-mvn verify
-java -jar target/campus-takeaway-2.0.0.jar
+<a id="quality"></a>
+
+## 测试验证
+
+| 验证 | 已记录的结果 | 证据 |
+| --- | --- | --- |
+| Java | **36 项通过，0 跳过**：9 单元 + 26 MySQL/Redis 集成 + 1 迁移测试 | [测试结果](docs/test-results.json) |
+| 前端 | **4 项通过**：Fetch / CSRF / 错误处理、轮询并发与中止；生产构建通过 | [测试源码](web/tests/) |
+| 真实浏览器 | **17 条检查**：四角色订单闭环、375/768/1440 布局与图片、浏览器异常 0 | [浏览器结果](docs/screenshots/browser-results.json) |
+| 数据回退演练 | 旧版 JAR 可读取新订单，9 张业务表摘要保持一致 | [回退结果](docs/rollback-results.json) |
+| CI | Java 17 + MySQL 8 + Redis 7、Vue、Compose 校验与 Docker 构建 | [Actions](https://github.com/17elr/campus-takeaway/actions/workflows/ci.yml) |
+
+以上是实际验证记录。支付为模拟，未进行生产负载测试；缓存 SQL 次数与测量边界见[验证报告](docs/verification.md)。
+
+## 仓库导航
+
+```text
+campus-takeaway/
+├── web/                       # Vue 页面、Fetch 与前端测试
+├── src/main/java/.../         # JSON API、认证、购物车、缓存与业务服务
+├── src/main/resources/db/     # Flyway 迁移与演示菜单
+├── src/test/                  # 单元、真实服务集成与迁移验证
+├── docs/                      # 接口、架构、数据字典、截图与验收记录
+├── scripts/                   # 验证、浏览器闭环与回退检查
+├── compose.yaml               # MySQL / Redis / 应用编排
+└── Dockerfile                 # Vue + Java 多阶段构建
 ```
 
-`mvn verify` 默认只运行单元测试，MySQL 集成测试需显式启用；完整命令见下节。Maven 从 `web/dist` 拷贝页面，不会自动下载 Node 或运行 npm。Docker 构建执行前端检查，后端集成验证由 CI 使用真实服务完成。
+[文档中心](docs/README.md) · [API 契约](docs/API.md) · [数据字典](docs/DATA_DICTIONARY.md) · [面试讲解](docs/INTERVIEW.md) · [版本记录](CHANGELOG.md)
 
-## 业务与一致性
-
-- 学生：注册/登录、店铺菜单、单店购物车、校内地址/默认地址、模拟支付、取消、确认收货、再来一单。
-- 商家：自有店铺、营业状态、菜品分类/现价/上下架、接单和制作完成。
-- 骑手：待配送大厅、条件抢单、本人配送、标记送达。
-- 管理员：创建商家/骑手、用户启停、店铺启停、菜品和订单概览；没有任意改订单状态的接口。
-- 四角色共用：资料、改密、角色导航、订单详情、事件时间线与错误反馈。
-- 数据库购物车：用户行锁统一串行化修改与结算；版本/随机凭证和订单唯一键实现跨实例幂等。订单、明细、事件与清空购物车同事务。
-- 登录：Redis 共享 Session，仅保存用户编号、认证版本与 CSRF 安全元数据。每次请求重新查 MySQL 中的启用状态与角色。旧 BCrypt 哈希兼容。
-- 菜单：`takeaway:menu:v1:{shopId}` 缓存默认第一页 12 条；60–75 秒 TTL，空店铺 10 秒；其他分页/搜索直接执行数据库 LIMIT/OFFSET。改菜品/营业状态/停用商家后提交后失效。
-- 结算价格始终重新查 MySQL。菜单缓存允许短暂旧展示；缓存不承担订单正确性。
-- 未支付超时：创建时固定 15 分钟期限，每 30 秒批量条件取消，启动时补偿；事件原因 `PAYMENT_TIMEOUT`。
-- 订单列表：先数据库过滤分页，再一次 IN 查询批量加载本页明细，消除逐订单查明细。
-- 商家/骑手订单列表在可见时每 8 秒轮询，离开/隐藏终止请求，禁止重叠与过期响应覆盖。
-
-## 完整验证
-
-为专用库 `campus_takeaway_test` 准备 MySQL 权限。迁移测试额外创建并清理一个随机命名的 `campus_takeaway_migration_*` 库，账号需要 CREATE/DROP DATABASE 权限；这些权限只用于隔离测试。不能把 TEST_DB_URL 指向业务库。
-
-PowerShell：
-
-```powershell
-$env:RUN_MYSQL_TESTS='true'
-$env:TEST_DB_PASSWORD='你的隔离测试库密码'
-# 默认 TEST_DB_URL 为 127.0.0.1:13317/campus_takeaway_test，TEST_DB_USERNAME=root
-# 默认 TEST_REDIS_PORT=16377
-mvn verify
-npm test --prefix web
-npm run build --prefix web
-```
-
-Linux CI 同样显式设置 `RUN_MYSQL_TESTS=true`，MySQL 8 + Redis 7 为真实服务。报告和 JAR 作为 Actions artifact 保存。浏览器脚本使用隔离演示库与浏览器，见 [验证记录](docs/verification.md)。
-
-## 数据升级与回退
-
-**不要直接把旧生产数据库接入新版试运行。** 本次按用户选择只升级代码，未连接或修改原项目数据库。先备份，再导入独立演练库，最后按编号迁移。旧 ID、BCrypt、订单、快照、金额、事件保留；旧 Session 购物车无法批量迁移，需要重新选餐。
-
-Flyway 新库执行 V1 + V2；旧库在备份演练后显式设置 `FLYWAY_BASELINE_ON_MIGRATE=true`，记录 V1 基线并执行 V2，成功后关闭此开关。MySQL DDL 不具备完整事务回滚；务必先在副本验证。
-
-- [迁移与回退手册](docs/MIGRATION.md)
-- [接口与错误契约](docs/API.md)
-- [数据字典](docs/DATA_DICTIONARY.md)
-- [架构与状态图](docs/architecture.md)
-- [真实测试与测量记录](docs/verification.md)
-- [面试讲解](docs/INTERVIEW.md)
-- [负责模块说明](docs/PORTFOLIO.md)
-
-不接入真实支付、消息队列、地图、推荐算法或微服务。不存在真实运营规模或未经测量的 QPS 声明。
+原 Java Web 到 Vue / Redis 的升级记录见 [PR #2](https://github.com/17elr/campus-takeaway/pull/2)，旧提交与图片来源保留。现有数据库切换请先阅读[迁移手册](docs/MIGRATION.md)。

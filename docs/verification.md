@@ -12,7 +12,7 @@
 | Edge 真实浏览器 | 完整订单闭环与四角色页面，17 条检查，15 张截图；脚本异常 0 |
 | 旧 JAR 隔离回退读取 | CSRF 登录、新订单可见，9 张业务表读取前后摘要一致 |
 
-机器可读结果：[Java 测试](test-results.json)、[浏览器](screenshots/browser-results.json)、[回退](rollback-results.json)。GitHub Actions 在 push/PR 时运行同一批 Java 测试、Vue 检查、Compose 校验和 Docker 构建，实际状态以仓库 Actions 为准。
+机器可读结果：[Java 测试](test-results.json)、[浏览器](screenshots/browser-results.json)、[回退](rollback-results.json)。GitHub Actions 在 push/PR 时运行同一批 Java 测试、Vue 检查、Compose 校验和 Docker 构建。2026-10-24 的 [master 流水线](https://github.com/17elr/campus-takeaway/actions/runs/40073617253)已通过：36 项 Java 测试、4 项前端测试、Compose 校验和 Docker 镜像构建；使用真实 MySQL 8 / Redis 7。当前状态见仓库 Actions。
 
 ## 覆盖的业务与故障
 
@@ -36,7 +36,7 @@
 
 ## 截图与复现
 
-新截图位于 [screenshots](screenshots/)，由同一脚本生成，视口 375 / 768 / 1440。检查全部已加载图片 naturalWidth、页面无横向溢出、注册字段旁错误已有购物车加菜等待加载/校验数量，以及浏览器运行时异常。表格和移动导航容器可内部滚动。
+新截图位于 [screenshots](screenshots/)，由同一脚本生成，视口 375 / 768 / 1440。检查全部已加载图片 naturalWidth、页面无横向溢出、注册字段旁错误、已有购物车加菜等待加载/校验数量，以及浏览器运行时异常。表格和移动导航容器可内部滚动。
 
 启动独立演示实例（DEMO_DATA=true、全新演示库），再启动独立 Edge 浏览器并开启本地 CDP 端口：
 
@@ -49,4 +49,4 @@ node scripts/browser-smoke.mjs
 
 ## 尚未执行的范围
 
-原业务库迁移和正式环境切换按用户选择未执行；原数据未改动。Docker 本机不可用，容器构建与 Redis 7 校验交由 GitHub Actions，不能把未完成的远端构建写成本地已通过。未接真实支付、未做生产负载测试。历史 `docs/images` 是原版存档，不作为本次 Vue 截图。
+原业务库迁移和正式环境切换按用户选择未执行；原数据未改动。Docker 本机不可用；容器构建与 Redis 7 校验已由上述 GitHub Actions 完成，本地 Redis 5 和远端 Redis 7 的验证环境分别记录。未接真实支付、未做生产负载测试。历史 `docs/images` 是原版存档，不作为本次 Vue 截图。
