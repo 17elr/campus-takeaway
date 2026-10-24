@@ -1,25 +1,46 @@
 package cn.campus.takeaway.controller;
 
+import cn.campus.takeaway.domain.*;
 import cn.campus.takeaway.mapper.AppMapper;
-import cn.campus.takeaway.service.AccountService;
-import cn.campus.takeaway.service.OrderService;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import cn.campus.takeaway.service.*;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import java.util.Map;
 
-@Controller @RequestMapping("/admin")
+@RestController
+@RequestMapping("/api/admin")
 public class AdminController {
-    private final AppMapper mapper;private final OrderService orders;private final AccountService accounts;
-    public AdminController(AppMapper mapper,OrderService orders,AccountService accounts){this.mapper=mapper;this.orders=orders;this.accounts=accounts;}
-    @GetMapping String dashboard(Model model){model.addAttribute("users",mapper.listUsers());model.addAttribute("shops",mapper.listShops());model.addAttribute("orders",orders.allOrders());return "admin";}
-    @PostMapping("/users") String create(@RequestParam String username,@RequestParam String password,@RequestParam String realName,@RequestParam String phone,@RequestParam String role,RedirectAttributes flash){
-        if(!java.util.Set.of("MERCHANT","RIDER").contains(role))throw new IllegalArgumentException("管理员仅可创建商家或骑手账号");
-        accounts.create(username,password,realName,phone,role);flash.addFlashAttribute("success","账号已创建，请告知使用者登录信息");return "redirect:/admin?tab=users";
+    private final AppMapper mapper;
+    private final AccountService accounts;
+    private final CatalogService catalog;
+    public AdminController(AppMapper mapper,AccountService accounts,CatalogService catalog) { this.mapper=mapper; this.accounts=accounts; this.catalog=catalog; }
+    public record AccountInput(@NotBlank String username,@NotBlank String password,@NotBlank String realName,@NotBlank String phone,@NotBlank String role) {}
+    public record Enabled(@NotNull Boolean enabled) {}
+    public record Open(@NotNull Boolean open) {}
+    @GetMapping("/users")
+    PageResult<AppUser> users(@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String query) {
+        check(page,size,query); return new PageResult<>(mapper.pageUsers(query,size,(long)(page-1)*size),mapper.countFilteredUsers(query),page,size);
     }
-    @PostMapping("/users/{id}/toggle") String toggle(@PathVariable long id,@RequestParam boolean enabled,RedirectAttributes flash){
-        var target=mapper.listUsers().stream().filter(user->user.getId()==id).findFirst().orElseThrow(()->new IllegalArgumentException("账号不存在"));
-        if("ADMIN".equals(target.getRole()))throw new IllegalArgumentException("不能停用管理员账号");mapper.setUserEnabled(id,enabled);flash.addFlashAttribute("success",enabled?"账号已启用":"账号已停用，现有登录会话将在下次访问时失效");return "redirect:/admin?tab=users";
+    @PostMapping("/users")
+    Map<String,String> create(@Valid @RequestBody AccountInput input) {
+        if (!java.util.Set.of("MERCHANT","RIDER").contains(input.role())) throw new IllegalArgumentException("管理员仅可创建商家或骑手");
+        accounts.create(input.username(),input.password(),input.realName(),input.phone(),input.role()); return ok();
     }
-    @PostMapping("/shops/{id}/toggle") String shop(@PathVariable long id,@RequestParam boolean open,RedirectAttributes flash){if(mapper.setShopOpen(id,open)!=1)throw new IllegalArgumentException("店铺不存在");flash.addFlashAttribute("success",open?"店铺已开启营业":"店铺已暂停营业");return "redirect:/admin?tab=shops";}
+    @PutMapping("/users/{id}/enabled")
+    Map<String,String> enabled(@PathVariable long id,@Valid @RequestBody Enabled input) { catalog.enabled(id,input.enabled()); return ok(); }
+    @GetMapping("/shops")
+    PageResult<Shop> shops(@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String query) {
+        check(page,size,query); return new PageResult<>(mapper.pageShops(true,query,size,(long)(page-1)*size),mapper.countShops(true,query),page,size);
+    }
+    @PutMapping("/shops/{id}/open")
+    Map<String,String> open(@PathVariable long id,@Valid @RequestBody Open input) { catalog.adminShop(id,input.open()); return ok(); }
+    @GetMapping("/dishes")
+    PageResult<Dish> dishes(@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String query) {
+        check(page,size,query); return new PageResult<>(mapper.pageDishes(null,query,size,(long)(page-1)*size),mapper.countDishes(null,query),page,size);
+    }
+    private void check(int page,int size,String query) {
+        PageResult.validate(page,size); if(query.length()>80) throw new IllegalArgumentException("搜索词最多 80 字");
+    }
+    private Map<String,String> ok() { return Map.of("message","管理操作已完成"); }
 }

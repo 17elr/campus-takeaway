@@ -1,0 +1,8 @@
+.git
+.local
+target
+web/node_modules
+web/dist
+交付
+*.log
+.env

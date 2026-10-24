@@ -1,0 +1,43 @@
+{
+  "legacyHttpStatus": 200,
+  "completedOrderVisible": true,
+  "tablesUnchanged": {
+    "users": {
+      "rows": 9,
+      "sha256": "4cdaf3daf1c279377e6a76a675221af04ee4108ed46e54166bb5f54c44ac4f7c"
+    },
+    "shops": {
+      "rows": 6,
+      "sha256": "355af3d0179320548bb8259897a8125c1b60119806ab8b1b13354d71a0bd8e6d"
+    },
+    "dishes": {
+      "rows": 36,
+      "sha256": "794b13515541775422701eb11508715ca9efa97cb7a40ab94a77f20f4bcf32b8"
+    },
+    "addresses": {
+      "rows": 1,
+      "sha256": "300e45897bf496bcce8b83575a21b2a91d735a70b36e068ecb7554ed0f7a0b27"
+    },
+    "orders": {
+      "rows": 2,
+      "sha256": "04e47cd0e8b32999cf686751d36c8c74e07e454334c5248cff7863d8fbe8f505"
+    },
+    "order_items": {
+      "rows": 2,
+      "sha256": "f55130fe2ceaaedf0cb6bd2bfb08215f2fbd36c902a2eeb1128dcc67bceffda1"
+    },
+    "order_events": {
+      "rows": 8,
+      "sha256": "b5af2fcacd0b6dc108c9afa1839adc6c8937750734a3687afbd00e4f18bb03e7"
+    },
+    "cart": {
+      "rows": 1,
+      "sha256": "806b4ba0c8599276e68e9dfa50c88a5896ebad7f49d001c2837869fbfe53178d"
+    },
+    "cart_item": {
+      "rows": 1,
+      "sha256": "7a30b0eced4b6f840b0f6b80f5fb78c19f865d4fe5f8a972ba7092107171e5a4"
+    }
+  },
+  "limit": "Legacy UI cannot display V2 database carts; they remain preserved for a future upgrade."
+}
