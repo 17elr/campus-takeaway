@@ -9,7 +9,7 @@
 | `RUN_MYSQL_TESTS=true mvn verify` | 36 项，0 失败、0 错误、0 跳过：9 单元 + 26 真实服务集成 + 1 独立库迁移 |
 | `npm test --prefix web` | 4 项，全部通过；Fetch Cookie/CSRF/错误处理与轮询并发/中止 |
 | `npm run build --prefix web` | 通过，Vue dist 可打包进 JAR |
-| Edge 真实浏览器 | 完整订单闭环与四角色页面，16 条检查，15 张截图；脚本异常 0 |
+| Edge 真实浏览器 | 完整订单闭环与四角色页面，17 条检查，15 张截图；脚本异常 0 |
 | 旧 JAR 隔离回退读取 | CSRF 登录、新订单可见，9 张业务表读取前后摘要一致 |
 
 机器可读结果：[Java 测试](test-results.json)、[浏览器](screenshots/browser-results.json)、[回退](rollback-results.json)。GitHub Actions 在 push/PR 时运行同一批 Java 测试、Vue 检查、Compose 校验和 Docker 构建，实际状态以仓库 Actions 为准。
@@ -36,7 +36,7 @@
 
 ## 截图与复现
 
-新截图位于 [screenshots](screenshots/)，由同一脚本生成，视口 375 / 768 / 1440。检查全部已加载图片 naturalWidth、页面无横向溢出、注册字段旁错误以及浏览器运行时异常。表格和移动导航容器可内部滚动。
+新截图位于 [screenshots](screenshots/)，由同一脚本生成，视口 375 / 768 / 1440。检查全部已加载图片 naturalWidth、页面无横向溢出、注册字段旁错误已有购物车加菜等待加载/校验数量，以及浏览器运行时异常。表格和移动导航容器可内部滚动。
 
 启动独立演示实例（DEMO_DATA=true、全新演示库），再启动独立 Edge 浏览器并开启本地 CDP 端口：
 

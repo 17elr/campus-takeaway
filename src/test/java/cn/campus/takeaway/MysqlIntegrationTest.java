@@ -224,6 +224,8 @@ class MysqlIntegrationTest {
         assertTrue(response.headers().allValues("set-cookie").stream().anyMatch(cookie -> cookie.contains("HttpOnly")&&cookie.contains("SameSite=Lax")));
         assertEquals(200,client.at(otherPort,"GET","/api/auth/me",null,true).statusCode());
         for(String path:List.of("/api/missing","/images/missing.webp","/unmatched-page")) assertEquals(404,client.send("GET",path,null).statusCode(),path);
+        var html404=client.http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:"+port+"/missing-html-page")).header("Accept","text/html").GET().build(),HttpResponse.BodyHandlers.ofString());
+        assertEquals(404,html404.statusCode());assertTrue(html404.body().contains("页面不存在"));assertFalse(html404.body().contains("Whitelabel"));
         assertEquals(400,client.send("GET","/api/orders/not-a-number",null).statusCode());client.ok("POST","/api/auth/logout",null);assertEquals(401,client.send("GET","/api/auth/me",null).statusCode());
     }
     @Test void registrationCannotEscalateAndForgedHeadersDoNotAuthenticate() throws Exception {

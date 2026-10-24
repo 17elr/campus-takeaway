@@ -1,13 +1,14 @@
 {
-  "date": "2026-10-24T06:49:03.805Z",
+  "date": "2026-10-24T07:07:18.999Z",
   "browser": "Edg/155.0.4283.62",
-  "orderId": "2",
+  "orderId": "3",
   "checks": [
     "shops-desktop: 1440px, images and layout passed",
     "shops-mobile: 375px, images and layout passed",
     "shops-tablet: 768px, images and layout passed",
     "registration inline validation passed",
     "student-menu: 1440px, images and layout passed",
+    "adding to an existing cart waits for the current quantity",
     "student-cart: 1440px, images and layout passed",
     "merchant-orders: 1440px, images and layout passed",
     "rider-available: 1440px, images and layout passed",
