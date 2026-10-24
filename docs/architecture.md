@@ -2,8 +2,8 @@
 
 ```mermaid
 flowchart LR
-    UI[Vue 3 / Element Plus / Fetch] --> API[Spring MVC JSON API]
-    API --> AUTH[认证过滤器 / CSRF]
+    UI[Vue 3 / Element Plus / Fetch] --> AUTH[认证过滤器 / CSRF]
+    AUTH --> API[Spring MVC JSON API]
     AUTH --> SESSION[(Redis Spring Session)]
     AUTH --> USER[(MySQL 用户状态 / 角色 / 版本)]
     API --> SERVICE[账号 / 地址 / 购物车 / 订单 / 店铺服务]

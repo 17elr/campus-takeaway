@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="title description">
+  <title id="title">校园好味道 · Campus Takeaway</title>
+  <desc id="description">好好吃饭，好好生活。Vue 3、Java 17、MySQL 和 Redis，连接学生、商家、骑手与管理员。</desc>
+  <rect width="1200" height="300" rx="18" fill="#faf6f1"/>
+  <rect x="0" y="0" width="8" height="300" rx="4" fill="#b94e26"/>
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans CJK SC, sans-serif">
+    <text x="54" y="48" font-size="13" font-weight="600" letter-spacing="3" fill="#9b3d1b">CAMPUS TAKEAWAY</text>
+    <text x="49" y="128" font-size="64" font-weight="700" fill="#342b27">好好吃饭，</text>
+    <text x="49" y="205" font-size="64" font-weight="700" fill="#342b27">好好生活。</text>
+    <text x="54" y="258" font-size="18" fill="#71645b">校园订餐与配送 · 从选餐到送达</text>
+    <rect x="597" y="34" width="550" height="232" rx="12" fill="#ffffff" stroke="#eadfd6"/>
+    <text x="628" y="75" font-size="13" font-weight="600" letter-spacing="2" fill="#9b3d1b">ONE ORDER · FOUR ROLES</text>
+    <path d="M628 95H1116" stroke="#eadfd6"/>
+    <g fill="#9b3d1b" font-size="12" font-family="Consolas, monospace">
+      <text x="628" y="124">01</text><text x="752" y="124">02</text>
+      <text x="876" y="124">03</text><text x="1000" y="124">04</text>
+    </g>
+    <g fill="#342b27" font-size="23" font-weight="600">
+      <text x="628" y="157">学生</text><text x="752" y="157">商家</text>
+      <text x="876" y="157">骑手</text><text x="1000" y="157">管理员</text>
+    </g>
+    <g fill="#71645b" font-size="13">
+      <text x="628" y="183">选择餐品</text><text x="752" y="183">接单制作</text>
+      <text x="876" y="183">领取配送</text><text x="1000" y="183">维护服务</text>
+    </g>
+    <path d="M628 205H1116" stroke="#eadfd6"/>
+    <text x="628" y="239" fill="#71645b" font-size="14" font-family="Consolas, monospace">VUE 3  /  JAVA 17  /  MYSQL  /  REDIS</text>
+  </g>
+</svg>
