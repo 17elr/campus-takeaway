@@ -2,3 +2,8 @@ target/
 .local/
 *.log
 毕业设计指导/
+
+web/node_modules/
+web/dist/
+.env
+交付/

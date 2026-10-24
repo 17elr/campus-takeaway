@@ -1,0 +1,9 @@
+{
+  "name": "campus-takeaway-web",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "scripts": { "dev": "vite --host 127.0.0.1 --port 18081 --strictPort", "build": "vite build", "test": "node --test tests/*.test.mjs" },
+  "dependencies": { "vue": "^3.5.0", "vue-router": "^4.5.0", "element-plus": "^2.11.0", "@element-plus/icons-vue": "^2.3.0" },
+  "devDependencies": { "vite": "^7.1.0", "@vitejs/plugin-vue": "^6.0.0" }
+}

@@ -1,5 +1,0 @@
-<!doctype html>
-<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
-<head><meta charset="UTF-8"><title>操作提示 · 校园好味道</title><link rel="stylesheet" href="/css/app.css"></head>
-<body><main class="error-page"><a class="eyebrow" href="/">校园好味道</a><section class="card" th:with="code=${status ?: 500}"><div class="eyebrow" th:text="${code}"></div><div th:switch="${code}"><div th:case="400"><h1>请检查提交的信息</h1><p>必要信息缺失或格式不正确，请返回页面重新填写。</p></div><div th:case="403"><h1>当前操作未获授权</h1><p>请确认账号权限。页面过期时，请刷新后再提交。</p></div><div th:case="404"><h1>没有找到这个页面</h1><p>链接可能已失效，或对应记录不存在。</p></div><div th:case="*"><h1>暂时无法完成操作</h1><p>请稍后再试。如已提交订单，先在订单列表中确认结果。</p></div></div><div class="actions"><a class="button" th:href="${roleHome ?: '/'}">返回工作台</a><a class="button subtle" href="/login">前往登录</a></div></section></main></body>
-</html>

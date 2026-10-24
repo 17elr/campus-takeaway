@@ -1,39 +1,44 @@
 package cn.campus.takeaway.controller;
 
-import cn.campus.takeaway.domain.AppUser;
+import cn.campus.takeaway.domain.*;
 import cn.campus.takeaway.mapper.AppMapper;
-import cn.campus.takeaway.service.InputChecks;
-import cn.campus.takeaway.service.OrderService;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import cn.campus.takeaway.service.CatalogService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.math.BigDecimal;
+import java.util.Map;
 
-@Controller @RequestMapping("/merchant")
+@RestController
+@RequestMapping("/api/merchant")
 public class MerchantController {
-    private final AppMapper mapper; private final OrderService orders;
-    public MerchantController(AppMapper mapper,OrderService orders){this.mapper=mapper;this.orders=orders;}
-    @GetMapping String dashboard(@AuthenticationPrincipal AppUser user,Model model){
-        var shop=mapper.findShopByOwner(user.getId()); if(shop==null)throw new IllegalStateException("店铺信息不存在，请联系管理员");
-        var history=orders.shopOrders(shop.getId());model.addAttribute("shop",shop);model.addAttribute("dishes",mapper.listDishes(shop.getId()));model.addAttribute("orders",history);
-        model.addAttribute("pendingCount",history.stream().filter(order->"PENDING_ACCEPT".equals(order.getStatus())).count());
-        model.addAttribute("makingCount",history.stream().filter(order->"MAKING".equals(order.getStatus())).count());
-        model.addAttribute("completedAmount",history.stream().filter(order->"COMPLETED".equals(order.getStatus())).map(order->order.getAmount()).reduce(BigDecimal.ZERO,BigDecimal::add)); return "merchant";
+    private final CatalogService catalog;
+    private final AppMapper mapper;
+    public MerchantController(CatalogService catalog,AppMapper mapper) { this.catalog=catalog; this.mapper=mapper; }
+    public record DishInput(@NotBlank String category,@NotBlank String name,@NotNull BigDecimal price) {}
+    public record ShopInput(@NotBlank String name,@NotBlank String description,@NotNull Boolean open) {}
+    @GetMapping("/shop")
+    Shop shop(@RequestAttribute("currentUser") AppUser user) { return catalog.ownShop(user.getId()); }
+    @PutMapping("/shop")
+    Map<String,String> update(@RequestAttribute("currentUser") AppUser user,@Valid @RequestBody ShopInput input) {
+        catalog.shop(user.getId(),input.name(),input.description(),input.open()); return ok();
     }
-    @PostMapping("/orders/{id}/accept") String accept(@AuthenticationPrincipal AppUser user,@PathVariable long id,RedirectAttributes flash){orders.merchantAccept(id,user.getId());flash.addFlashAttribute("success","已接单，请开始制作");return "redirect:/merchant?tab=orders";}
-    @PostMapping("/orders/{id}/ready") String ready(@AuthenticationPrincipal AppUser user,@PathVariable long id,RedirectAttributes flash){orders.merchantReady(id,user.getId());flash.addFlashAttribute("success","制作完成，订单已进入待配送任务");return "redirect:/merchant?tab=orders";}
-    @PostMapping("/dishes") String dish(@AuthenticationPrincipal AppUser user,@RequestParam String category,@RequestParam String name,@RequestParam BigDecimal price,RedirectAttributes flash){
-        category=InputChecks.text(category,"分类",40);name=InputChecks.text(name,"名称",80);price=InputChecks.price(price);
-        mapper.insertDish(mapper.findShopByOwner(user.getId()).getId(),category,name,price);flash.addFlashAttribute("success","菜品已添加并上架");return "redirect:/merchant?tab=dishes";
+    @GetMapping("/dishes")
+    PageResult<Dish> dishes(@RequestAttribute("currentUser") AppUser user,@RequestParam(defaultValue="1") int page,@RequestParam(defaultValue="12") int size,@RequestParam(defaultValue="") String query) {
+        PageResult.validate(page,size);
+        if(query.length()>80) throw new IllegalArgumentException("搜索词最多 80 字");
+        long shopId=catalog.ownShop(user.getId()).getId();
+        return new PageResult<>(mapper.pageDishes(shopId,query,size,(long)(page-1)*size),mapper.countDishes(shopId,query),page,size);
     }
-    @PostMapping("/dishes/{id}/edit") String edit(@AuthenticationPrincipal AppUser user,@PathVariable long id,@RequestParam String category,@RequestParam String name,@RequestParam BigDecimal price,RedirectAttributes flash){
-        category=InputChecks.text(category,"分类",40);name=InputChecks.text(name,"名称",80);price=InputChecks.price(price);
-        if(mapper.updateDish(id,mapper.findShopByOwner(user.getId()).getId(),name,category,price)!=1)throw new IllegalArgumentException("菜品不存在或无权修改");flash.addFlashAttribute("success","菜品已更新，历史订单单价保持原快照");return "redirect:/merchant?tab=dishes";
+    @PostMapping("/dishes")
+    Map<String,String> create(@RequestAttribute("currentUser") AppUser user,@Valid @RequestBody DishInput input) {
+        catalog.dish(user.getId(),null,input.category(),input.name(),input.price()); return ok();
     }
-    @PostMapping("/dishes/{id}/toggle") String toggle(@AuthenticationPrincipal AppUser user,@PathVariable long id,RedirectAttributes flash){if(mapper.toggleDish(id,mapper.findShopByOwner(user.getId()).getId())!=1)throw new IllegalArgumentException("菜品不存在或无权修改");flash.addFlashAttribute("success","菜品上下架状态已更新");return "redirect:/merchant?tab=dishes";}
-    @PostMapping("/shop") String shop(@AuthenticationPrincipal AppUser user,@RequestParam String name,@RequestParam String description,@RequestParam boolean open,RedirectAttributes flash){
-        name=InputChecks.text(name,"店名",80);description=InputChecks.text(description,"店铺简介",255);mapper.updateShop(user.getId(),name,description,open);flash.addFlashAttribute("success","店铺信息已保存");return "redirect:/merchant?tab=shop";
+    @PutMapping("/dishes/{id}")
+    Map<String,String> edit(@RequestAttribute("currentUser") AppUser user,@PathVariable long id,@Valid @RequestBody DishInput input) {
+        catalog.dish(user.getId(),id,input.category(),input.name(),input.price()); return ok();
     }
+    @PostMapping("/dishes/{id}/toggle")
+    Map<String,String> toggle(@RequestAttribute("currentUser") AppUser user,@PathVariable long id) { catalog.toggleDish(user.getId(),id); return ok(); }
+    private Map<String,String> ok() { return Map.of("message","店铺信息已更新"); }
 }
